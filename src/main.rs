@@ -1,5 +1,6 @@
-use warp::Filter;
+use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
+use warp::Filter;
 
 async fn placeholder() -> Result<(), reqwest::Error> {
     let echo_json: serde_json::Value = reqwest::Client::new()
@@ -32,22 +33,31 @@ async fn your_ip() -> Result<String, Box<dyn std::error::Error>> {
 async fn ip() -> Result<String, Infallible> {
     match your_ip().await {
         Ok(s) => Ok(s),
-        Err(err) => panic!("Argh! {}", err) // FIXME
+        Err(err) => panic!("Argh! {}", err), // FIXME
     }
 }
 
-async fn find_is_legendary(name: String) -> Result<bool, Box<dyn std::error::Error>> {
+#[derive(Debug, Serialize, Deserialize)]
+struct Habitat {
+    name: String,
+    url: String, // FIXME: URL type?
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Species {
+    name: String,
+    habitat: Habitat,
+    is_legendary: bool,
+}
+
+async fn find_is_legendary(name: String) -> Result<Species, Box<dyn std::error::Error>> {
     // FIXME: Contruct url properly
     let url = format!("https://pokeapi.co/api/v2/pokemon-species/{}", name);
-    let species: serde_json::Value = reqwest::get(url).await?.json().await?;
+    let species_value: serde_json::Value = reqwest::get(&url).await?.json().await?;
+    println!("species_value = {:#?}", species_value);
+    let species: Species = reqwest::get(&url).await?.json::<Species>().await?;
     println!("species = {:#?}", species);
-    let opt_leg = species.get("is_legendary");
-    println!("opt_leg = {:#?}", opt_leg);
-    match opt_leg {
-        Some(serde_json::Value::Bool(is_legendary)) => Ok(*is_legendary),
-        Some(_) => Err("The key \"is_legendary\" is not a bool".into()),
-        None => Err("Cannot find key \"legendary\"".into()),
-    }
+    Ok(species)
 }
 
 async fn pokemon(name: String) -> Result<impl warp::Reply, Infallible> {
