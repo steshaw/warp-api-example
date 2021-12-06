@@ -138,7 +138,6 @@ async fn main() {
 
     let _default = warp::any().map(|| "hmm\n");
 
-    //warp::serve(pokemon.and_then(echo.or(health).or(default))
     warp::serve(
         pokemon.or(echo).or(ip).or(health), //.or(default) // Disable for now otherwise not_found errors are picked up by `default`
     )
