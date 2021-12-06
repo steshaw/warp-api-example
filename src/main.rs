@@ -72,7 +72,7 @@ fn get_description(flavor_text_entries: Vec<FlavorText>) -> Option<String> {
         .map(|e| e.flavor_text.to_string()) // TODO: Remove to_string
 }
 
-fn translation_url(translation: &str, desc: &String) -> String {
+fn translation_url(translation: &str, desc: &str) -> String {
     //let _url = format!("https://api.funtranslations.com/translate/{}.json?text=Master%20Obiwan%20has%20lost%20a%20planet.", translation);
     let base = format!(
         "https://api.funtranslations.com/translate/{}.json",
