@@ -36,8 +36,9 @@ async fn ip() -> Result<String, Infallible> {
     }
 }
 
-async fn find_is_legendary() -> Result<bool, Box<dyn std::error::Error>> {
-    let url = "https://pokeapi.co/api/v2/pokemon-species/mewtwo";
+async fn find_is_legendary(name: String) -> Result<bool, Box<dyn std::error::Error>> {
+    // FIXME: Contruct url properly
+    let url = format!("https://pokeapi.co/api/v2/pokemon-species/{}", name);
     let species: serde_json::Value = reqwest::get(url).await?.json().await?;
     println!("species = {:#?}", species);
     let opt_leg = species.get("is_legendary");
@@ -51,7 +52,7 @@ async fn find_is_legendary() -> Result<bool, Box<dyn std::error::Error>> {
 
 async fn pokemon(name: String) -> Result<impl warp::Reply, Infallible> {
     format!("Hello Pokémon, {}\n", name);
-    let l = find_is_legendary().await;
+    let l = find_is_legendary(name.to_string()).await; // XXX: Remove to_string
     let r = format!("name = {}, is_legendary = {:#?}", name, l);
     Ok(r)
 }
