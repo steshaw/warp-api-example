@@ -39,11 +39,29 @@ async fn ip() -> String {
     }
 }
 
+async fn find_is_legendary() -> Result<bool, Box<dyn std::error::Error>> {
+    let url = "https://pokeapi.co/api/v2/pokemon-species/mewtwo";
+    let species: serde_json::Value = reqwest::get(url).await?.json().await?;
+    println!("species = {:#?}", species);
+    let opt_leg = species.get("is_legendary");
+    println!("opt_leg = {:#?}", opt_leg);
+    match opt_leg {
+        Some(serde_json::Value::Bool(is_legendary)) => Ok(*is_legendary),
+        Some(_) => Err("The key \"is_legendary\" is not a bool".into()),
+        None => Err("Cannot find key \"legendary\"".into()),
+    }
+}
+
 #[tokio::main]
 async fn main() {
     match your_ip().await {
         Ok(ip) => println!("your_ip = {:#?}", ip),
         Err(err) => println!("Error getting ip: {}", err),
+    }
+
+    match find_is_legendary().await {
+        Ok(is_legendary) => println!("is_legendary = {:#?}", is_legendary),
+        Err(err) => println!("Error getting is_legendary: {}", err),
     }
 
     let r = argh().await;
