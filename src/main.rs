@@ -44,27 +44,68 @@ struct Habitat {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+struct Language {
+    name: String,
+    url: String, // FIXME: URL type?
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct FlavorText {
+    flavor_text: String,
+    language: Language,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 struct Species {
     name: String,
     habitat: Habitat,
     is_legendary: bool,
+    flavor_text_entries : Vec<FlavorText>
 }
 
-async fn find_is_legendary(name: String) -> Result<Species, Box<dyn std::error::Error>> {
+async fn find_species(name: String) -> Result<Species, reqwest::Error> {
     // FIXME: Contruct url properly
     let url = format!("https://pokeapi.co/api/v2/pokemon-species/{}", name);
     let species_value: serde_json::Value = reqwest::get(&url).await?.json().await?;
     println!("species_value = {:#?}", species_value);
+    let flavor_text_entries = species_value.get("flavor_text_entries");
+    println!("flavor_text_entries = {:#?}", flavor_text_entries);
     let species: Species = reqwest::get(&url).await?.json::<Species>().await?;
     println!("species = {:#?}", species);
     Ok(species)
 }
 
-async fn pokemon(name: String) -> Result<impl warp::Reply, Infallible> {
-    format!("Hello Pokémon, {}\n", name);
-    let l = find_is_legendary(name.to_string()).await; // XXX: Remove to_string
-    let r = format!("name = {}, is_legendary = {:#?}", name, l);
-    Ok(r)
+#[derive(Debug, Serialize, Deserialize)]
+struct PokemonInfo {
+    name: String,
+    habitat: String,
+    is_legendary: bool,
+    description : String,
+}
+
+impl warp::Reply for PokemonInfo {
+    fn into_response(self) -> warp::reply::Response {
+        let json = warp::reply::json(&self);
+        warp::reply::with_status(json, warp::http::StatusCode::OK).into_response()
+    }
+}
+
+// XXX: Can this be an `into()`?
+fn to_rejection(e: reqwest::Error) -> warp::Rejection {
+    // TODO: map the `e` here.
+    warp::reject::not_found()
+}
+
+async fn pokemon(name: String) -> Result<impl warp::Reply, warp::Rejection> {
+    // XXX: Remove the to_string()
+    find_species(name.to_string()).await.map_err(to_rejection).map(|species| {
+        PokemonInfo{
+            name: species.name,
+            habitat: species.habitat.name,
+            is_legendary: species.is_legendary,
+            description: "<todo>".to_string(),
+        }
+    })
 }
 
 #[tokio::main]
