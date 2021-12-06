@@ -60,7 +60,7 @@ struct Species {
     name: String,
     habitat: Habitat,
     is_legendary: bool,
-    flavor_text_entries : Vec<FlavorText>
+    flavor_text_entries: Vec<FlavorText>,
 }
 
 async fn find_species(name: String) -> Result<Species, reqwest::Error> {
@@ -80,7 +80,7 @@ struct PokemonInfo {
     name: String,
     habitat: String,
     is_legendary: bool,
-    description : String,
+    description: String,
 }
 
 impl warp::Reply for PokemonInfo {
@@ -96,30 +96,30 @@ fn to_rejection(e: reqwest::Error) -> warp::Rejection {
     warp::reject::not_found()
 }
 
-fn get_description(flavor_text_entries : Vec<FlavorText>) -> Option<String> {
-    for entry in flavor_text_entries {
-        if entry.language.name == "en" {
-            return Some(entry.flavor_text)
-        }
-    }
-    None
+fn get_description(flavor_text_entries: Vec<FlavorText>) -> Option<String> {
+    flavor_text_entries
+        .iter()
+        .find(|e| e.language.name == "en")
+        .map(|e| e.flavor_text.to_string()) // TODO: Remove to_string
 }
 
 async fn pokemon(name: String) -> Result<impl warp::Reply, warp::Rejection> {
     // XXX: Remove the to_string()
-    find_species(name.to_string()).await.map_err(to_rejection).and_then(|species| {
-        let opt_desc = get_description(species.flavor_text_entries);
+    find_species(name.to_string())
+        .await
+        .map_err(to_rejection)
+        .and_then(|species| {
+            let opt_desc = get_description(species.flavor_text_entries);
             match opt_desc {
-                Some(desc) =>
-                   Ok(PokemonInfo{
-                       name: species.name,
-                       habitat: species.habitat.name,
-                       is_legendary: species.is_legendary,
-                       description: desc,
-                   }),
-                None => Err(warp::reject::not_found())
+                Some(desc) => Ok(PokemonInfo {
+                    name: species.name,
+                    habitat: species.habitat.name,
+                    is_legendary: species.is_legendary,
+                    description: desc,
+                }),
+                None => Err(warp::reject::not_found()),
             }
-    })
+        })
 }
 
 #[tokio::main]
