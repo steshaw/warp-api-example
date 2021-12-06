@@ -28,8 +28,13 @@ struct Species {
 }
 
 async fn find_species(name: String) -> Result<Species, reqwest::Error> {
-    // FIXME: Contruct url properly
-    let url = format!("https://pokeapi.co/api/v2/pokemon-species/{}", name);
+    // FIXME: Remove unwraps.
+    let url = url::Url::parse("https://pokeapi.co/api/v2/pokemon-species/").unwrap();
+    println!("url 1 = {}", url);
+    let url = url.join(name.as_str()).unwrap();
+    println!("url 2 = {}", url);
+    let url = url.to_string();
+    println!("url 3 = {}", url);
     let species_value: serde_json::Value = reqwest::get(&url).await?.json().await?;
     println!("species_value = {:#?}", species_value);
     let flavor_text_entries = species_value.get("flavor_text_entries");
