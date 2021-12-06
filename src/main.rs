@@ -97,7 +97,12 @@ fn to_rejection(e: reqwest::Error) -> warp::Rejection {
 }
 
 fn get_description(flavor_text_entries : Vec<FlavorText>) -> Option<String> {
-    Some("fake description".to_string()) // TODO
+    for entry in flavor_text_entries {
+        if entry.language.name == "en" {
+            return Some(entry.flavor_text)
+        }
+    }
+    None
 }
 
 async fn pokemon(name: String) -> Result<impl warp::Reply, warp::Rejection> {
