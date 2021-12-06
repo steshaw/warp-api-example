@@ -4,13 +4,13 @@ use warp::Filter;
 #[derive(Debug, Serialize, Deserialize)]
 struct Habitat {
     name: String,
-    url: String, // FIXME: URL type?
+    url: url::Url,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Language {
     name: String,
-    url: String, // FIXME: URL type?
+    url: url::Url,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
