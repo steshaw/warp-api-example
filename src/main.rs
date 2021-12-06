@@ -96,15 +96,24 @@ fn to_rejection(e: reqwest::Error) -> warp::Rejection {
     warp::reject::not_found()
 }
 
+fn get_description(flavor_text_entries : Vec<FlavorText>) -> Option<String> {
+    Some("fake description".to_string()) // TODO
+}
+
 async fn pokemon(name: String) -> Result<impl warp::Reply, warp::Rejection> {
     // XXX: Remove the to_string()
-    find_species(name.to_string()).await.map_err(to_rejection).map(|species| {
-        PokemonInfo{
-            name: species.name,
-            habitat: species.habitat.name,
-            is_legendary: species.is_legendary,
-            description: "<todo>".to_string(),
-        }
+    find_species(name.to_string()).await.map_err(to_rejection).and_then(|species| {
+        let opt_desc = get_description(species.flavor_text_entries);
+            match opt_desc {
+                Some(desc) =>
+                   Ok(PokemonInfo{
+                       name: species.name,
+                       habitat: species.habitat.name,
+                       is_legendary: species.is_legendary,
+                       description: desc,
+                   }),
+                None => Err(warp::reject::not_found())
+            }
     })
 }
 

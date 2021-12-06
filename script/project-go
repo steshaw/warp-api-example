@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-http http://localhost:3000/pokemon/argh
-http http://localhost:3000/pokemon/newtwo # typo
+http http://localhost:3000/pokemon/oops
 http http://localhost:3000/pokemon/mewtwo
 http http://localhost:3000/pokemon/ditto
