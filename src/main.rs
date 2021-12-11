@@ -170,8 +170,8 @@ async fn try_translation(info: PokemonInfo) -> Result<PokemonInfo, reqwest::Erro
         }
         Err(err) => {
             println!("There was an error: {}", err);
-            Ok(info)}
-        ,
+            Ok(info)
+        }
     }
 }
 
@@ -218,9 +218,7 @@ async fn main() {
 
     let health = warp::path!("health").map(|| "ok\n");
 
-    warp::serve(
-        pokemon.or(health),
-    )
-    .run(([0, 0, 0, 0], 3000))
-    .await;
+    warp::serve(pokemon.or(health))
+        .run(([0, 0, 0, 0], 3000))
+        .await;
 }
