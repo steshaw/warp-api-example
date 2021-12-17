@@ -69,7 +69,7 @@ fn get_description(flavor_text_entries: Vec<FlavorText>) -> Option<String> {
     flavor_text_entries
         .iter()
         .find(|e| e.language.name == "en")
-        .map(|e| e.flavor_text.to_string()) // TODO: Remove to_string
+        .map(|e| e.flavor_text.to_string())
 }
 
 fn translation_url(translation: &str, desc: &str) -> String {
